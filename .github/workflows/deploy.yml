@@ -2,10 +2,12 @@
 name: Deploy to GitHub Pages
 
 on:
+  # 在推送到 main 分支時觸發
   push:
     branches:
-      - main # 當 main 分支有更新時觸發
+      - main
 
+# 允許 workflow 寫入部署
 permissions:
   contents: read
   pages: write
@@ -15,21 +17,27 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
+      # 步驟 1: 下載您的程式碼
       - name: Checkout 🛎️
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4 # 版本更新：v3 -> v4
 
+      # 步驟 2: 用您儲存的 Secret 替換 URL 佔位符
       - name: Replace URL Placeholder 🔄
         run: |
           sed -i "s|APPS_SCRIPT_URL_PLACEHOLDER|${{ secrets.APPS_SCRIPT_URL }}|g" index.html
-
+      
+      # 步驟 3: 設定 GitHub Pages
       - name: Setup Pages ⚙️
-        uses: actions/configure-pages@v3
+        uses: actions/configure-pages@v5 # 版本更新：v3 -> v5
 
+      # 步驟 4: 上傳部署產物 (Artifact)
       - name: Upload artifact 📦
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3 # 關鍵更新：v2 -> v3
         with:
-          path: '.' # 上傳整個資料夾的內容
+          # 從根目錄上傳
+          path: '.'
 
+      # 步驟 5: 部署到 GitHub Pages
       - name: Deploy to GitHub Pages 🚀
         id: deployment
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v4 # 版本更新：v2 -> v4
