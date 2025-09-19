@@ -1,8 +1,7 @@
-# .github/workflows/deploy.yml
+# .github/workflows/deploy.yml (最終修復版)
 name: Deploy to GitHub Pages
 
 on:
-  # 在推送到 main 分支時觸發
   push:
     branches:
       - main
@@ -13,31 +12,37 @@ permissions:
   pages: write
   id-token: write
 
+# 避免並發部署
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      # 步驟 1: 下載您的程式碼
       - name: Checkout 🛎️
-        uses: actions/checkout@v4 # 版本更新：v3 -> v4
+        uses: actions/checkout@v4
 
-      # 步驟 2: 用您儲存的 Secret 替換 URL 佔位符
+      # 步驟 1: 替換 URL 佔位符 (保持不變)
       - name: Replace URL Placeholder 🔄
         run: |
           sed -i "s|APPS_SCRIPT_URL_PLACEHOLDER|${{ secrets.APPS_SCRIPT_URL }}|g" index.html
       
-      # 步驟 3: 設定 GitHub Pages
+      # 步驟 2: 設定 GitHub Pages (*** 關鍵修復 ***)
       - name: Setup Pages ⚙️
-        uses: actions/configure-pages@v5 # 版本更新：v3 -> v5
-
-      # 步驟 4: 上傳部署產物 (Artifact)
-      - name: Upload artifact 📦
-        uses: actions/upload-pages-artifact@v3 # 關鍵更新：v2 -> v3
+        uses: actions/configure-pages@v5
         with:
-          # 從根目錄上傳
+          # 這一行強制 GitHub 在執行時啟用 Pages 功能，解決 "Not Found" 錯誤
+          enablement: true
+
+      # 步驟 3: 上傳部署產物
+      - name: Upload artifact 📦
+        uses: actions/upload-pages-artifact@v3
+        with:
           path: '.'
 
-      # 步驟 5: 部署到 GitHub Pages
+      # 步驟 4: 部署
       - name: Deploy to GitHub Pages 🚀
         id: deployment
-        uses: actions/deploy-pages@v4 # 版本更新：v2 -> v4
+        uses: actions/deploy-pages@v4
