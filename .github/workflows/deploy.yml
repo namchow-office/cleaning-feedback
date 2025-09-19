@@ -1,4 +1,4 @@
-# .github/workflows/deploy.yml (最終修復版)
+# .github/workflows/deploy.yml (最終、官方工具版)
 name: Deploy to GitHub Pages
 
 on:
@@ -7,7 +7,7 @@ on:
       - main
 
 permissions:
-  contents: read
+  contents: write # 需要寫入權限來修改檔案
   pages: write
   id-token: write
 
@@ -22,14 +22,20 @@ jobs:
       - name: Checkout 🛎️
         uses: actions/checkout@v4
 
-      # *** 關鍵修復：使用更穩定的字串替換 Action ***
+      # *** 關鍵修復：使用官方 Script Action 進行替換 ***
       - name: Replace Apps Script URL Placeholder 🔄
-        uses: jacobtomlinson/gha-find-and-replace@v3
+        uses: actions/github-script@v7
         with:
-          find: "APPS_SCRIPT_URL_PLACEHOLDER"
-          replace: "${{ secrets.APPS_SCRIPT_URL }}"
-          include: "index.html"
-      
+          script: |
+            const fs = require('fs');
+            const path = './index.html';
+            const secretUrl = '${{ secrets.APPS_SCRIPT_URL }}';
+            
+            let fileContent = fs.readFileSync(path, 'utf8');
+            fileContent = fileContent.replace('APPS_SCRIPT_URL_PLACEHOLDER', secretUrl);
+            fs.writeFileSync(path, fileContent);
+            console.log('Successfully replaced the placeholder URL.');
+            
       - name: Setup Pages ⚙️
         uses: actions/configure-pages@v5
 
